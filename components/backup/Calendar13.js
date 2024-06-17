@@ -14,9 +14,6 @@ const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState([]);
 
-  const [isNextMonthClicked, setIsNextMonthClicked] = useState(false);
-  const [isPrevMonthClicked, setIsPrevMonthClicked] = useState(false);
-
   const [dataFetched, setDataFetched] = useState(false);
   const [serverError, setServerError] = useState(false);
 
@@ -24,8 +21,6 @@ const Calendar = () => {
     const fetchData = async () => {
       try {
         if (!dataFetched) {
-          // res = response - ответ
-          // req = request - запрос
           const resCalendarData = await axios.get('http://localhost:3001/getcalendardata');
           setCalendarData(resCalendarData.data.calendarData);
 
@@ -33,7 +28,7 @@ const Calendar = () => {
           setCurrentMonthData(resMonthData.data.currentMonthData);
 
           const resAvailableTimes = await axios.get('http://localhost:3001/getavailabletimes');
-          const availableTimes = resAvailableTimes.data.AvailableTimesForMonths || [];
+          const availableTimes = resAvailableTimes.data.AvailableTimesForMonth || [];
           setAvailableTimesForMonth(availableTimes);
 
           const resPrevMonthData = await axios.get('http://localhost:3001/getpreviousmonthdata');
@@ -42,7 +37,6 @@ const Calendar = () => {
           const resNextMonthData = await axios.get('http://localhost:3001/getnextmonthdata');
           setNextMonthData(resNextMonthData.data.nextMonthData);
 
-          // next available time for booking
           const nextAvailable = availableTimes.find(dateData => dateData.availableTimes.length > 0);
           if (nextAvailable) {
             setNextAvailableDate(nextAvailable.date);
@@ -82,29 +76,6 @@ const Calendar = () => {
     }
   };
 
-  const handleNextMonthClick = async () => {
-    try {
-      const response = await axios.post('http://localhost:3001/nextmonth');
-      setCurrentMonthData(response.data.currentMonthData);
-      setIsNextMonthClicked(true);
-      setIsPrevMonthClicked(false);
-    } catch (error) {
-      console.error('Error switching to next month:', error);
-    }
-  };
-
-  const handlePrevMonthClick = async () => {
-    try {
-      const response = await axios.post('http://localhost:3001/prevmonth');
-      setCurrentMonthData(response.data.currentMonthData);
-      setIsPrevMonthClicked(true);
-      setIsNextMonthClicked(false);
-    } catch (error) {
-      console.error('Error switching to previous month:', error);
-    }
-  };
-
-  
   const handleTimeClick = (time) => {
     console.log(`Вы нажали на ${time} для даты ${selectedDate}`);
   };
@@ -220,7 +191,7 @@ const Calendar = () => {
       cells.push(
         <div
           key={`next-${nextDay}`}
-          className="text-center text-gray-600 cursor-pointer"
+          className="text-center text-orange-400 cursor-pointer"
           onClick={() => handleDateClick(nextDay, nextMonthIndex, currentMonthData.currentYear)}
         >
           {nextDay}
@@ -233,25 +204,11 @@ const Calendar = () => {
 
   return (
     <div className="w-[600px] h-full bg-gray-800 p-3">
-      <div className="mt-28 bg-gray-800 flex flex-col justify-between h-[280px] shadow-[0_15px_10px_-10px_rgba(0,0,0,0.25)]">
-        <div className="flex items-center justify-between mb-3">
+      <div className="mt-20 bg-gray-800 flex flex-col justify-between
+      h-[280px] shadow-[0_15px_10px_-10px_rgba(0,0,0,0.25)]">
+        <div className="flex justify-between mb-3">
           <h1 className="text-xl font-thin">{currentMonthData.currentMonthName}</h1>
-          <div className="flex space-x-3">
-            <button
-              onClick={handlePrevMonthClick}
-              className={`text-xl font-thin ${isPrevMonthClicked || !isNextMonthClicked ? 'text-white/20' : 'text-white'}`}
-              disabled={isPrevMonthClicked}
-            >
-              Prev
-            </button>
-            <button
-              onClick={handleNextMonthClick}
-              className={`text-xl font-thin ${isNextMonthClicked ? 'text-white/20' : 'text-white'}`}
-              disabled={isNextMonthClicked}
-            >
-              Next 
-            </button>
-          </div>
+          <h1 className="text-xl font-thin">{nextMonthData.monthName}</h1>
         </div>
         <div className="flex-grow">
           <div className="grid grid-cols-7 gap-3 gap-x-14">
