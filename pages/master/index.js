@@ -1,54 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { BookingContext } from '../../components/BookingHandler';
+import { useRouter } from 'next/router';
 
 const Master = () => {
-  // Создаем состояние, чтобы хранить информацию о выбранной карточке
+  const router = useRouter();
+
+  const { bookingData, setBookingData } = useContext(BookingContext);
+
   const [selectedCard, setSelectedCard] = useState(null);
-  // Создаем состояние для сообщения об ошибке
+  
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Функция для обработки клика на карточке
   const handleCardClick = (cardNumber) => {
-    // Если карточка уже выбрана, снова сбрасываем ее состояние
     if (selectedCard === cardNumber) {
       setSelectedCard(null);
+      setBookingData({ ...bookingData, specialist: null });
     } else {
-      // Иначе, устанавливаем выбранную карточку в состояние
       setSelectedCard(cardNumber);
+      setBookingData({ ...bookingData, specialist: `Specialist ${cardNumber}` });
     }
   };
 
-  // Функция для обработки нажатия кнопки "Book Now"
   const handleBookNowClick = () => {
     if (selectedCard !== null) {
-      // Если выбрана карточка, можно выполнить необходимые действия, например, отправить данные на сервер
-      console.log(`Booking confirmed for card ${selectedCard}`);
-      // Сбрасываем сообщение об ошибке
+      console.log(`Specialist confirmed for ${selectedCard}`);
       setErrorMessage('');
+      
+      // switch to service page
+      router.push('/services');
     } else {
-      // Если карточка не выбрана, устанавливаем сообщение об ошибке
-      setErrorMessage('Please select a master first');
+      setErrorMessage('Please select a specialist first');
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      {/* Сообщение об ошибке */}
+
       {errorMessage && (
         <div className="bg-red-500 text-white p-2 mb-4">{errorMessage}</div>
       )}
+
       <div className="flex">
-        {/* Карточка 1 */}
         <div className={`relative rounded-lg shadow-lg p-4 mr-4 bg-slate-600 bg-item bg-cover w-[300px] h-[300px] ${selectedCard === 1 ? 'border-2 border-slate-400' : ''}`} onClick={() => handleCardClick(1)}>
           {/* Наименование карточки и другие детали */}
         </div>
-        {/* Карточка 2 */}
         <div className={`relative rounded-lg shadow-lg p-4 bg-slate-600 bg-item bg-cover w-[300px] h-[300px] ${selectedCard === 2 ? 'border-2 border-slate-400' : ''}`} onClick={() => handleCardClick(2)}>
           {/* Наименование карточки и другие детали */}
         </div>
       </div>
-      {/* Кнопка "Book Now" */}
       <button className="mt-4 bg-slate-500 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded" onClick={handleBookNowClick}>
-        Book Now
+        Choose Service
       </button>
     </div>
   );

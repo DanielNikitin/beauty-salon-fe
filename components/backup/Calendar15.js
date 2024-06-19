@@ -1,13 +1,7 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { BookingContext } from '../components/BookingHandler';
-import { useRouter } from 'next/router';
 
 const Calendar = () => {
-  const router = useRouter();
-
-  const { bookingData, setBookingData } = useContext(BookingContext);
-
   const [calendarData, setCalendarData] = useState([]);
   const [currentMonthData, setCurrentMonthData] = useState({});
   const [prevMonthData, setPrevMonthData] = useState({});
@@ -30,6 +24,8 @@ const Calendar = () => {
     const fetchData = async () => {
       try {
         if (!dataFetched) {
+          // res = response - ответ
+          // req = request - запрос
           const resCalendarData = await axios.get('http://localhost:3001/getcalendardata');
           setCalendarData(resCalendarData.data.calendarData);
 
@@ -46,11 +42,13 @@ const Calendar = () => {
           const resNextMonthData = await axios.get('http://localhost:3001/getnextmonthdata');
           setNextMonthData(resNextMonthData.data.nextMonthData);
 
+          // next available time for booking
           const nextAvailable = availableTimes.find(dateData => dateData.availableTimes.length > 0);
           if (nextAvailable) {
             setNextAvailableDate(nextAvailable.date);
           }
 
+          // все дни текущего месяца yyyy-mm-dd
           const monthDates = availableTimes.map(dateData => dateData.date);
           setMonthDates(monthDates);
 
@@ -79,10 +77,8 @@ const Calendar = () => {
     if (selectedDateData) {
       const availableTimes = selectedDateData.availableTimes;
       setSelectedTime(availableTimes);
-      setBookingData({ ...bookingData, selectedDate, selectedTime: availableTimes });
     } else {
       setSelectedTime([]);
-      setBookingData({ ...bookingData, selectedDate, selectedTime: [] });
     }
   };
 
@@ -108,26 +104,9 @@ const Calendar = () => {
     }
   };
 
+  
   const handleTimeClick = (time) => {
-    setBookingData(prevBookingData => ({
-      ...prevBookingData,
-      selectedTime: [time]
-    }));
-  };
-
-  const handleBookAppointment = () => {
-    console.log('Booking Data:', bookingData);
-    // Здесь вы можете отправить данные на сервер с помощью axios.post
-    // Пример отправки данных:
-    // axios.post('http://localhost:3001/bookappointment', bookingData)
-    //   .then(response => {
-    //     console.log('Booking successful:', response.data);
-    //     // Дополнительные действия после успешного бронирования
-    //   })
-    //   .catch(error => {
-    //     console.error('Error booking appointment:', error);
-    //     // Обработка ошибки бронирования
-    //   });
+    console.log(`Вы нажали на ${time} для даты ${selectedDate}`);
   };
 
   const formatDate = (dateString) => {
@@ -171,12 +150,12 @@ const Calendar = () => {
     const renderTimes = (times) => {
       return times.map((time, index) => (
         <button
-        key={index}
-        className={`text-white p-3 m-2 ${selectedTime.includes(time) ? 'rounded-full bg-gray-700' : 'text-red-600'}`}
-        onClick={() => handleTimeClick(time)}
-      >
-        {time}
-      </button>
+          key={index}
+          className="rounded-full bg-gray-500 text-white p-3 m-2"
+          onClick={() => handleTimeClick(time)}
+        >
+          {time}
+        </button>
       ));
     };
 
@@ -190,7 +169,6 @@ const Calendar = () => {
             </div>
           </div>
         )}
-        
         {dayTimes.length > 0 && (
           <div>
             <h2 className="font-thin text-white mt-4 mb-2 text-xl">Day</h2>
@@ -199,14 +177,6 @@ const Calendar = () => {
             </div>
           </div>
         )}
-
-        <button
-          onClick={handleBookAppointment}
-          className={`text-xl font-thin ${selectedTime === '' ? 'text-white/20' : 'text-white'}`}
-          disabled={selectedTime === ''}
-        >
-          Book
-        </button>
       </div>
     );
   };
@@ -225,7 +195,7 @@ const Calendar = () => {
     let cells = [];
 
     daysOfWeek.forEach((day, index) => {
-      cells.push(<div key={`day-${index}`} className="text-center font-sora text-gray-500 text-lg">{day}</div>);
+      cells.push(<div key={`day-${index}`} className="text-center font-sora text-gray-500 text-lg/2">{day}</div>);
     });
 
     const prevMonthDays = prevMonthData.numberOfDays || 0;
@@ -240,10 +210,14 @@ const Calendar = () => {
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
+
       const isPastDay = isCurrentMonth && day < today.getDate();
       const isToday = isCurrentMonth && day === today.getDate();
+     // const isFutureDay = isCurrentMonth && day &&  > today.getDate();
+
       const isSelected = selectedDate === `${currentMonthData.currentYear}-${String(currentMonthIndex).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
+      // Проверка, есть ли в массиве availableTimesForMonth объект, у которого для текущей даты пустой массив availableTimes
       const isEmptyDay = availableTimesForMonth.some(dateData => dateData.date === `${currentMonthData.currentYear}-${String(currentMonthIndex).padStart(2, '0')}-${String(day).padStart(2, '0')}` && dateData.availableTimes.length === 0);
 
       cells.push(
@@ -254,7 +228,7 @@ const Calendar = () => {
           ${isEmptyDay ? 'text-gray-600' : ''}
           ${isPastDay ? 'text-gray-600' : ''}
           ${isSelected ? 'rounded-full bg-gray-500' : ''}
-          `}
+          `}  // ${isFutureDay ? '' : ''}
           onClick={() => handleDateClick(day, currentMonthIndex, currentMonthData.currentYear)}
         >
           {day}
@@ -297,7 +271,7 @@ const Calendar = () => {
               className={`text-xl font-thin ${isNextMonthClicked ? 'text-white/20' : 'text-white'}`}
               disabled={isNextMonthClicked}
             >
-              Next
+              Next 
             </button>
           </div>
         </div>
@@ -312,6 +286,7 @@ const Calendar = () => {
       </div>
     </div>
   );
+  
 };
 
 export default Calendar;
