@@ -78,11 +78,11 @@ const Calendar = () => {
     const selectedDateData = availableTimesForMonth.find(dateData => dateData.date === selectedDate);
     if (selectedDateData) {
       const availableTimes = selectedDateData.availableTimes;
-      setSelectedTime(availableTimes);
-      setBookingData({ ...bookingData, selectedDate, selectedTime: availableTimes });
+      setSelectedTime(''); // Reset selected time when a new date is selected
+      setBookingData({ ...bookingData, selectedDate, selectedTime: '' });
     } else {
-      setSelectedTime([]);
-      setBookingData({ ...bookingData, selectedDate, selectedTime: [] });
+      setSelectedTime('');
+      setBookingData({ ...bookingData, selectedDate, selectedTime: '' });
     }
   };
 
@@ -109,25 +109,14 @@ const Calendar = () => {
   };
 
   const handleTimeClick = (time) => {
-    setBookingData(prevBookingData => ({
-      ...prevBookingData,
-      selectedTime: [time]
-    }));
+    setSelectedTime(time);
+    setBookingData({ ...bookingData, selectedTime: time });
   };
 
   const handleBookAppointment = () => {
     console.log('Booking Data:', bookingData);
-    // Здесь вы можете отправить данные на сервер с помощью axios.post
-    // Пример отправки данных:
-    // axios.post('http://localhost:3001/bookappointment', bookingData)
-    //   .then(response => {
-    //     console.log('Booking successful:', response.data);
-    //     // Дополнительные действия после успешного бронирования
-    //   })
-    //   .catch(error => {
-    //     console.error('Error booking appointment:', error);
-    //     // Обработка ошибки бронирования
-    //   });
+    // switch to service page
+    router.push('/details');
   };
 
   const formatDate = (dateString) => {
@@ -138,7 +127,18 @@ const Calendar = () => {
   };
 
   const renderTimeButtons = () => {
-    if (selectedTime.length === 0) {
+    if (!selectedDate || availableTimesForMonth.length === 0) {
+      return null;
+    }
+
+    const selectedDateData = availableTimesForMonth.find(dateData => dateData.date === selectedDate);
+    if (!selectedDateData) {
+      return null;
+    }
+
+    const { availableTimes } = selectedDateData;
+
+    if (availableTimes.length === 0) {
       let formattedNextAvailableDate = '';
 
       try {
@@ -152,7 +152,8 @@ const Calendar = () => {
           <p className="font-bold text-xl text-gray-300">There are no available spots for this day</p>
           <p className="font-thin text-md text-gray-50">Next available date:</p>
           <button
-            className="font-thin text-xl text-white"
+            className="font-thin text-2xl text-white/70 underline underline-offset-8 decoration-white/50 decoration-1
+            hover:decoration-white hover:text-white"
             onClick={() => handleDateClick(
               parseInt(nextAvailableDate.split('-')[2], 10),
               parseInt(nextAvailableDate.split('-')[1], 10),
@@ -163,21 +164,25 @@ const Calendar = () => {
           </button>
         </div>
       );
+      
     }
 
-    const morningTimes = selectedTime.filter(time => parseInt(time.split(':')[0], 10) < 12);
-    const dayTimes = selectedTime.filter(time => parseInt(time.split(':')[0], 10) >= 12);
+    const morningTimes = availableTimes.filter(time => parseInt(time.split(':')[0], 10) < 12);
+    const dayTimes = availableTimes.filter(time => parseInt(time.split(':')[0], 10) >= 12);
 
     const renderTimes = (times) => {
-      return times.map((time, index) => (
-        <button
-        key={index}
-        className={`text-white p-3 m-2 ${selectedTime.includes(time) ? 'rounded-full bg-gray-700' : 'text-red-600'}`}
-        onClick={() => handleTimeClick(time)}
-      >
-        {time}
-      </button>
-      ));
+      return times.map((time, index) => {
+        const isSelectedTime = selectedTime === `${time}`;
+        return (
+          <button
+            key={index}
+            className={`text-white/70 hover:text-white p-3 m-2 ${isSelectedTime ? 'rounded-full bg-gray-500' : ''}`}
+            onClick={() => handleTimeClick(time)}
+          >
+            {time}
+          </button>
+        );
+      });
     };
 
     return (
@@ -200,16 +205,19 @@ const Calendar = () => {
           </div>
         )}
 
+        {selectedTime.length > 0 && (
+        <div className="w-full flex justify-center mt-4">
         <button
           onClick={handleBookAppointment}
-          className={`text-xl font-thin ${selectedTime === '' ? 'text-white/20' : 'text-white'}`}
-          disabled={selectedTime === ''}
+          className="w-full text-center text-xl font-thin py-2 text-white bg-gray-700 hover:bg-gray-600 focus:bg-gray-600 focus:outline-none"
         >
           Book
         </button>
-      </div>
-    );
-  };
+        </div>
+        )}
+    </div>
+  );
+};
 
   const renderCalendarCells = () => {
     const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -281,20 +289,20 @@ const Calendar = () => {
 
   return (
     <div className="w-[600px] h-full bg-gray-800 p-3">
-      <div className="mt-28 bg-gray-800 flex flex-col justify-between h-[280px] shadow-[0_15px_10px_-10px_rgba(0,0,0,0.25)]">
+      <div className="mt-2 bg-gray-800 flex flex-col justify-between h-[280px] shadow-[0_15px_10px_-10px_rgba(0,0,0,0.25)]">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-xl font-thin">{currentMonthData.currentMonthName}</h1>
           <div className="flex space-x-3">
             <button
               onClick={handlePrevMonthClick}
-              className={`text-xl font-thin ${isPrevMonthClicked || !isNextMonthClicked ? 'text-white/20' : 'text-white'}`}
+              className={`text-xl font-thin ${isPrevMonthClicked || !isNextMonthClicked ? 'text-white/20' : 'text-white/70 hover:text-white'}`}
               disabled={isPrevMonthClicked}
             >
               Prev
             </button>
             <button
               onClick={handleNextMonthClick}
-              className={`text-xl font-thin ${isNextMonthClicked ? 'text-white/20' : 'text-white'}`}
+              className={`text-xl font-thin ${isNextMonthClicked ? 'text-white/20' : 'text-white/70 hover:text-white'}`}
               disabled={isNextMonthClicked}
             >
               Next

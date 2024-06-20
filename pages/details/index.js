@@ -3,9 +3,11 @@ import { BookingContext } from '../../components/BookingHandler';
 import { useRouter } from 'next/router';
 
 const Details = () => {
-  const { bookingData, setBookingData } = useContext(BookingContext);
-  const [formData, setFormData] = useState(bookingData.personalInfo);
   const router = useRouter();
+
+  const { bookingData, setBookingData } = useContext(BookingContext);
+
+  const [formData, setFormData] = useState(bookingData.personalInfo);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -18,24 +20,29 @@ const Details = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setBookingData({ ...bookingData, personalInfo: formData });
+  
+    try {
+      // Отправляем данные на сервер
+      const response = await fetch('http://localhost:3001/api/booking', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...bookingData, personalInfo: formData }),
+      });
+  
+      if (response.ok) {
+        console.log('Booking submitted successfully');
 
-    // Отправка данных на сервер
-    const response = await fetch('/api/submit-booking', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(bookingData),
-    });
-
-    if (response.ok) {
-      console.log('Booking submitted successfully');
-      // Перенаправление или выполнение других действий по завершению
-      router.push('/confirmation');
-    } else {
-      console.error('Failed to submit booking');
+        router.push('/confirmation');
+      } else {
+        console.error('Failed to submit booking');
+      }
+    } catch (error) {
+      console.error('Error submitting booking:', error);
     }
   };
+  
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
@@ -83,7 +90,7 @@ const Details = () => {
             I agree to the processing of my personal data and confirm that I have read and accepted the Privacy Policy and User Agreement.
           </label>
         </div>
-        <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        <button type="submit" className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
           Book
         </button>
       </form>

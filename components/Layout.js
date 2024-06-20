@@ -14,11 +14,11 @@ import Header from '../components/Header';
 
 const Layout = ({ children }) => {
   return (
-
+    
+// <Header />
 <div className={`page bg-test_c text-white bg-cover bg-no-repeat
                            ${roboto.variable} font-roboto relative`}>
       <Nav />
-      <Header />
       {children}
     </div>
   );
