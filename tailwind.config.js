@@ -39,7 +39,8 @@ module.exports = {
         test_c2: '#3e3b45',
       },
       backgroundImage: {
-        item: 'url("/item.png")',
+        spc1: 'url("/specialist1.png")',
+        spc2: 'url("/specialist2.png")',
         site: 'url("/bg.svg")',
       },
       animation: {

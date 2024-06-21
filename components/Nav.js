@@ -3,15 +3,19 @@
 // icons
 import { HiHome, } from 'react-icons/hi2';
 import { CiShoppingTag } from "react-icons/ci";
+import { MdOutlineSpaceDashboard } from "react-icons/md";
+import { IoBookOutline } from "react-icons/io5";
+
 import Copyright from '../components/Copyright'; // Импортируйте компонент Copyright
 
 // nav data
 export const navData = [
   { name: 'HOME', path: '/', icon: <HiHome /> },
-  { name: 'MASTER', path: '/master', icon: <CiShoppingTag /> },
+  { name: 'SPECIALISTS', path: '/specialist', icon: <CiShoppingTag /> },
   { name: 'SERVICES', path: '/services', icon: <CiShoppingTag /> },
-  { name: 'BOOKING', path: '/booking', icon: <CiShoppingTag /> },
+  { name: 'BOOKING', path: '/booking', icon: <IoBookOutline /> },
   { name: 'DETAILS', path: '/details', icon: <CiShoppingTag /> },
+  { name: 'DASHBOARD', path: '/dashboard', icon: <MdOutlineSpaceDashboard /> },
 ];
 
 // next link
