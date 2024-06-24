@@ -1,20 +1,25 @@
-// Dashboard.js
+// Dashboard.jsx
 
 import React, { useState } from 'react';
+
 import CreateSpecialistForm from './CreateSpecialistForm';
 import SpecialistList from './SpecialistList';
 import DeleteSpecialist from './DeleteSpecialist';
+import BookingList from './BookingList';
 
 const Dashboard = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showSpecialistList, setShowSpecialistList] = useState(false);
+  const [showDeleteSpecialist, setShowDeleteSpecialist] = useState(false);
+  const [showBookingList, setShowBookingList] = useState(false);
 
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   // Функция для обработки успешного добавления специалиста
-  const handleAddSpecialistSuccess = () => {
-    setSuccessMessage('Specialist sucessfully created');
+  const handleAddSpecialistSuccess = (message) => {
+    setSuccessMessage(message);
+    setShowCreateForm(false); // Закрыть форму после успешного добавления
 
     // Скрыть сообщение через 3 секунды
     setTimeout(() => {
@@ -32,95 +37,116 @@ const Dashboard = () => {
     }, 5000);
   };
 
-  // Функция для обработки отправки формы добавления специалиста
-  const handleSubmit = async (newSpecialistData) => {
-    try {
-      const response = await fetch('http://localhost:3001/api/specialists', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newSpecialistData),
-      });
+  // Функция для обработки успешного удаления специалиста
+  const handleDeleteSpecialistSuccess = (message) => {
+    setSuccessMessage(message);
 
-      if (response.ok) {
-        console.log('Новый специалист успешно добавлен');
-        setCreateShowForm(false);
-        setShowSpecialistList(true);
-        handleAddSpecialistSuccess();
-      } else {
-        const errorMessage = await response.json();
-        console.error('ERROR:', errorMessage.error);
-        handleAddSpecialistError(errorMessage.error);
-      }
-    } catch (error) {
-      console.error('ERROR:', error);
-      handleAddSpecialistError('Something went wrong, try again');
-    }
+    // Скрыть сообщение через 3 секунды
+    setTimeout(() => {
+      setSuccessMessage('');
+    }, 3000);
+  };
+
+  // Функция для обработки ошибки при удалении специалиста
+  const handleDeleteSpecialistError = (error) => {
+    setErrorMessage(`ERROR: ${error}`);
+
+    // Скрыть сообщение об ошибке через 5 секунды
+    setTimeout(() => {
+      setErrorMessage('');
+    }, 5000);
   };
 
   return (
-    <div className="bg-primary/60 min-h-screen flex">
-      {/* Левая панель с надписью DASHBOARD и кнопками */}
+    <div className="bg-gray-600 min-h-screen flex">
+      {/* DASHBOARD with Buttons */}
       <div className="bg-primary/70 w-64 py-4 px-6 flex-shrink-0">
         <h1 className="text-4xl font-bold text-white mb-6">DASHBOARD</h1>
 
-        {/* Кнопка для отображения формы добавления специалиста */}
+        {/* CREATE SPECIALIST */}
         <button
           className="block w-full bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mb-4 focus:outline-none focus:shadow-outline"
           onClick={() => {
-            setShowCreateForm(true);
-            setShowSpecialistList(false); // Скрыть список специалистов при открытии формы
+            setShowCreateForm(!showCreateForm);
+            setShowSpecialistList(false);
+            setShowDeleteSpecialist(false);
+            setShowBookingList(false);
           }}
         >
-          Create Specialist
+          {showCreateForm ? 'Close Create Specialist' : 'Create Specialist'}
         </button>
 
-        {/* Кнопка для отображения списка специалистов */}
+        {/* LIST OF SPECIALISTS */}
         <button
           className="block w-full bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mb-4 focus:outline-none focus:shadow-outline"
           onClick={() => {
             setShowSpecialistList(!showSpecialistList);
             setShowCreateForm(false);
+            setShowDeleteSpecialist(false);
+            setShowBookingList(false);
           }}
         >
           {showSpecialistList ? 'Close Specialist List' : 'Specialist List'}
         </button>
 
-          {/* Кнопка для удаления специалистов */}
-          <button
+        {/* DELETE SPECIALIST */}
+        <button
           className="block w-full bg-red-700 hover:bg-red-900 text-white font-bold py-2 px-4 rounded mb-4 focus:outline-none focus:shadow-outline"
           onClick={() => {
-            setShowSpecialistList(!showSpecialistList);
+            setShowDeleteSpecialist(!showDeleteSpecialist);
             setShowCreateForm(false);
+            setShowSpecialistList(false);
+            setShowBookingList(false);
           }}
         >
-          {showSpecialistList ? 'Close Delete Specialist' : 'Delete Specialist'}
+          {showDeleteSpecialist ? 'Close Delete Specialist' : 'Delete Specialist'}
+        </button>
+
+        {/* BOOKING LIST */}
+        <button
+          className="block w-full bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mb-4 focus:outline-none focus:shadow-outline"
+          onClick={() => {
+            setShowBookingList(!showBookingList);
+            setShowSpecialistList(false);
+            setShowCreateForm(false);
+            setShowDeleteSpecialist(false);
+          }}
+        >
+          {showBookingList ? 'Close Booking List' : 'Booking List'}
         </button>
       </div>
 
-      {/* Основное содержимое */}
-      <main className="flex-grow p-6">
-        {/* Форма для добавления нового специалиста */}
-        {showCreateForm && <CreateSpecialistForm onSubmit={handleSubmit} onCancel={() => setShowCreateForm(false)} />}
-
-        {/* Список специалистов */}
+      {/* MAIN CONTENT */}
+      <div className="bg-primary flex-grow p-8 shadow-lg ml-4">
+        {showCreateForm && (
+          <CreateSpecialistForm
+            onSuccess={handleAddSpecialistSuccess}
+            onError={handleAddSpecialistError}
+          />
+        )}
         {showSpecialistList && <SpecialistList />}
-        
-        {/* Сообщение об успешном добавлении */}
+        {showDeleteSpecialist && (
+          <DeleteSpecialist
+            onSuccess={handleDeleteSpecialistSuccess}
+            onError={handleDeleteSpecialistError}
+          />
+        )}
+        {showBookingList && <BookingList />}
+
+        {/* SUCCESS MESSAGE */}
         {successMessage && (
           <div className="fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg">
             {successMessage}
           </div>
         )}
 
-        {/* Сообщение об ошибке */}
+        {/* ERROR MESSAGE */}
         {errorMessage && (
           <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg">
             {errorMessage}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 };

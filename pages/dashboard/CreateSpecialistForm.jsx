@@ -2,14 +2,14 @@
 
 import React, { useState } from 'react';
 
-const CreateSpecialistForm = ({ onSubmit, onCancel }) => {
+const CreateSpecialistForm = ({ onSuccess, onError }) => {
   const [name, setName] = useState('');
   const [services, setServices] = useState('');
   const [inactiveDays, setInactiveDays] = useState('');
   const [workingTimes, setWorkingTimes] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const newSpecialistData = {
@@ -20,11 +20,30 @@ const CreateSpecialistForm = ({ onSubmit, onCancel }) => {
       photo: photoUrl,
     };
 
-    onSubmit(newSpecialistData);
+    try {
+      const response = await fetch('http://localhost:3001/api/specialists', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newSpecialistData),
+      });
+
+      if (response.ok) {
+        onSuccess('Specialist successfully created');
+      } else {
+        const errorMessage = await response.json();
+        console.error('ERROR:', errorMessage.error);
+        onError(errorMessage.error);
+      }
+    } catch (error) {
+      console.error('ERROR:', error);
+      onError('Something went wrong, try again');
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-gray-700 p-8 rounded-lg shadow-lg">
+    <form onSubmit={handleSubmit} className="bg-gray-700 p-8 rounded-lg shadow-lg w-[1000px] mx-auto">
       <h2 className="text-2xl mb-4 text-white">Добавить нового специалиста</h2>
       <div className="grid gap-6 mb-6 md:grid-cols-2">
         <div>
@@ -35,7 +54,7 @@ const CreateSpecialistForm = ({ onSubmit, onCancel }) => {
             type="text"
             id="name"
             className="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 focus:outline-none focus:shadow-outline"
-            placeholder="Например, Иван Петров"
+            placeholder="Например, Дядя Стёпа"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -98,16 +117,9 @@ const CreateSpecialistForm = ({ onSubmit, onCancel }) => {
       <div className="mb-6">
         <button
           type="submit"
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+          className="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
         >
           Добавить
-        </button>
-        <button
-          type="button"
-          className="ml-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          onClick={onCancel}
-        >
-          Отмена
         </button>
       </div>
     </form>

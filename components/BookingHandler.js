@@ -4,7 +4,7 @@ export const BookingContext = createContext();
 
 export const BookingProvider = ({ children }) => {
   const [bookingData, setBookingData] = useState({
-    specialist: null,
+    specialistId: null,
     selectedServices: null,
     selectedDate: null,
     selectedTime: null,

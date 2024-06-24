@@ -2,53 +2,58 @@ import React, { useState, useEffect, useContext } from 'react';
 import { BookingContext } from '../../components/BookingHandler';
 import { useRouter } from 'next/router';
 
-const SpecialistPage = () => {
+const Specialist = () => {
   const router = useRouter();
   const { bookingData, setBookingData } = useContext(BookingContext);
   const [specialists, setSpecialists] = useState([]);
   const [selectedSpecialist, setSelectedSpecialist] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
 
-  useEffect(() => {
-    const fetchSpecialists = async () => {
-      try {
-        const response = await fetch('http://localhost:3001/api/specialists');
-        if (response.ok) {
-          const data = await response.json();
-          setSpecialists(data); // Устанавливаем полученные данные в состояние
-        } else {
-          throw new Error('Failed to fetch specialists');
-        }
-      } catch (error) {
-        console.error('Error fetching specialists:', error);
-        setErrorMessage('Failed to fetch specialists');
+  // Функция для загрузки списка специалистов
+  const fetchSpecialists = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/specialists');
+      if (!response.ok) {
+        throw new Error('Failed to fetch specialists');
       }
-    };
+      const data = await response.json();
+      setSpecialists(data);
+    } catch (error) {
+      console.error('Error fetching specialists:', error);
+      setErrorMessage(`Error fetching specialists: ${error.message}`);
+    }
+  };
 
+  useEffect(() => {
     fetchSpecialists();
   }, []);
 
+  // Функция для обработки выбора специалиста
   const handleSelectSpecialist = (specialist) => {
     setSelectedSpecialist(specialist);
-    setBookingData({ ...bookingData, specialist: specialist.name });
+    setBookingData({ ...bookingData, specialistId: specialist.id });
     setErrorMessage('');
   };
-  
 
-  const handleProceed = () => {
-    if (selectedSpecialist) {
+  // Функция для обработки перехода и получения информации о специалисте
+  const handleProceed = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/specialists/${id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch specialist details');
+      }
+      const data = await response.json();
+      console.log('Services of Specialist', id, ':', data.services);
       router.push('/services');
-    } else {
-      setErrorMessage('Please select a specialist first');
+    } catch (error) {
+      console.error('Error fetching specialist details:', error);
+      setErrorMessage(`Error fetching specialist details: ${error.message}`);
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      {errorMessage && (
-        <div className="bg-red-500 text-white p-2 mb-4">{errorMessage}</div>
-      )}
-
+      {errorMessage && <div className="bg-red-500 text-white p-2 mb-4">{errorMessage}</div>}
       <div className="flex flex-wrap justify-center gap-6">
         {specialists.map((specialist) => (
           <div
@@ -67,15 +72,16 @@ const SpecialistPage = () => {
           </div>
         ))}
       </div>
-
-      <button
-        className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-        onClick={handleProceed}
-      >
-        Choose Specialist
-      </button>
+      {selectedSpecialist && (
+        <button
+          className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+          onClick={() => handleProceed(selectedSpecialist.id)}
+        >
+          Choose Specialist
+        </button>
+      )}
     </div>
   );
 };
 
-export default SpecialistPage;
+export default Specialist;
