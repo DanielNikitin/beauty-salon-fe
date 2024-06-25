@@ -1,7 +1,5 @@
-// Dashboard.jsx
-
-import React, { useState } from 'react';
-
+import React, { useState, useEffect } from 'react';
+import { checkServerStatus } from '../../components/Status';
 import CreateSpecialistForm from './CreateSpecialistForm';
 import SpecialistList from './SpecialistList';
 import DeleteSpecialist from './DeleteSpecialist';
@@ -15,55 +13,45 @@ const Dashboard = () => {
 
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [serverStatus, setServerStatus] = useState('Checking...');
 
-  // Функция для обработки успешного добавления специалиста
+  useEffect(() => {
+    const fetchServerStatus = async () => {
+      const status = await checkServerStatus();
+      setServerStatus(status);
+    };
+
+    fetchServerStatus();
+    const interval = setInterval(fetchServerStatus, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleAddSpecialistSuccess = (message) => {
     setSuccessMessage(message);
-    setShowCreateForm(false); // Закрыть форму после успешного добавления
-
-    // Скрыть сообщение через 3 секунды
-    setTimeout(() => {
-      setSuccessMessage('');
-    }, 3000);
+    setShowCreateForm(false);
+    setTimeout(() => setSuccessMessage(''), 3000);
   };
 
-  // Функция для обработки ошибки при добавлении специалиста
   const handleAddSpecialistError = (error) => {
     setErrorMessage(`ERROR: ${error}`);
-
-    // Скрыть сообщение об ошибке через 5 секунд
-    setTimeout(() => {
-      setErrorMessage('');
-    }, 5000);
+    setTimeout(() => setErrorMessage(''), 5000);
   };
 
-  // Функция для обработки успешного удаления специалиста
   const handleDeleteSpecialistSuccess = (message) => {
     setSuccessMessage(message);
-
-    // Скрыть сообщение через 3 секунды
-    setTimeout(() => {
-      setSuccessMessage('');
-    }, 3000);
+    setTimeout(() => setSuccessMessage(''), 3000);
   };
 
-  // Функция для обработки ошибки при удалении специалиста
   const handleDeleteSpecialistError = (error) => {
     setErrorMessage(`ERROR: ${error}`);
-
-    // Скрыть сообщение об ошибке через 5 секунды
-    setTimeout(() => {
-      setErrorMessage('');
-    }, 5000);
+    setTimeout(() => setErrorMessage(''), 5000);
   };
 
   return (
     <div className="bg-gray-600 min-h-screen flex">
-      {/* DASHBOARD with Buttons */}
       <div className="bg-primary/70 w-64 py-4 px-6 flex-shrink-0">
         <h1 className="text-4xl font-bold text-white mb-6">DASHBOARD</h1>
 
-        {/* CREATE SPECIALIST */}
         <button
           className="block w-full bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mb-4 focus:outline-none focus:shadow-outline"
           onClick={() => {
@@ -76,7 +64,6 @@ const Dashboard = () => {
           {showCreateForm ? 'Close Create Specialist' : 'Create Specialist'}
         </button>
 
-        {/* LIST OF SPECIALISTS */}
         <button
           className="block w-full bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mb-4 focus:outline-none focus:shadow-outline"
           onClick={() => {
@@ -89,7 +76,6 @@ const Dashboard = () => {
           {showSpecialistList ? 'Close Specialist List' : 'Specialist List'}
         </button>
 
-        {/* DELETE SPECIALIST */}
         <button
           className="block w-full bg-red-700 hover:bg-red-900 text-white font-bold py-2 px-4 rounded mb-4 focus:outline-none focus:shadow-outline"
           onClick={() => {
@@ -102,7 +88,6 @@ const Dashboard = () => {
           {showDeleteSpecialist ? 'Close Delete Specialist' : 'Delete Specialist'}
         </button>
 
-        {/* BOOKING LIST */}
         <button
           className="block w-full bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mb-4 focus:outline-none focus:shadow-outline"
           onClick={() => {
@@ -116,7 +101,6 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* MAIN CONTENT */}
       <div className="bg-primary flex-grow p-8 shadow-lg ml-4">
         {showCreateForm && (
           <CreateSpecialistForm
@@ -133,19 +117,23 @@ const Dashboard = () => {
         )}
         {showBookingList && <BookingList />}
 
-        {/* SUCCESS MESSAGE */}
         {successMessage && (
           <div className="fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg">
             {successMessage}
           </div>
         )}
 
-        {/* ERROR MESSAGE */}
         {errorMessage && (
           <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg">
             {errorMessage}
           </div>
         )}
+
+          <div className="absolute bottom-4 left-4">
+          <p className={`text-lg font-bold ${serverStatus === 'Server status: Online' ? 'text-green-500' : 'text-red-500'}`}>
+            {serverStatus}
+          </p>
+        </div>
       </div>
     </div>
   );

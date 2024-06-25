@@ -1,40 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-
+import { checkServerStatus } from '../components/Status';
 import CopyrightXL from '../components/Copyright_xl';
 
 const Home = () => {
   const router = useRouter();
   const [serverStatus, setServerStatus] = useState('Checking...');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    // Функция для проверки статуса сервера
-    const checkServerStatus = async () => {
-      try {
-        const response = await fetch('http://localhost:3001/getcalendardata');
-        if (response.ok) {
-          setServerStatus('Server status: Online');
-        } else {
-          setServerStatus('Server status: Offline');
-        }
-      } catch (error) {
-        console.error('Error checking server status:', error);
-        setServerStatus('Server status: Offline');
-      }
+    const fetchServerStatus = async () => {
+      const status = await checkServerStatus();
+      setServerStatus(status);
     };
 
-    // Вызываем функцию для первичной проверки статуса сервера
-    checkServerStatus();
-
-    // Устанавливаем интервал для повторной проверки каждые 10 секунд
-    const interval = setInterval(checkServerStatus, 10000);
-
-    // Очистка интервала при размонтировании компонента
+    fetchServerStatus();
+    const interval = setInterval(fetchServerStatus, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  const handleBookNowClick = () => {
-    router.push('/specialist');
+  const handleBookNowClick = async () => {
+    const status = await checkServerStatus();
+    if (status === 'Server status: Online') {
+      router.push('/specialist');
+    } else {
+      setErrorMessage('Server is offline, please try again later.');
+    }
   };
 
   return (
@@ -44,14 +35,18 @@ const Home = () => {
           IN DEVELOPMENT
 
           <button
-            className='bg-gray-500 hover:bg-gray-700 w-[150px] text-white font-bold py-2 px-4 rounded'
+            className='bg-gray-500 hover:bg-gray-700 w-[150px] text-white font-bold py-1 px-4 rounded'
             onClick={handleBookNowClick}
           >
             Book Now
           </button>
-          <p className="text-lg mt-4">{serverStatus}</p>
         </div>
       </div>
+      {errorMessage && (
+        <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg">
+          {errorMessage}
+        </div>
+      )}
       <CopyrightXL />
     </div>
   );

@@ -12,6 +12,7 @@ const Services = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
+    // If data is empty, so switch to /home page
     if (bookingData.specialistId) {
       fetchSpecialistDetails(bookingData.specialistId);
     } else {
