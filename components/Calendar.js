@@ -30,29 +30,11 @@ const Calendar = () => {
     const fetchData = async () => {
       try {
         if (!dataFetched) {
-          const resCalendarData = await axios.get('http://localhost:3001/getcalendardata');
+          const resCalendarData = await axios.get('http://localhost:3001/api/calendardata');
           setCalendarData(resCalendarData.data.calendarData);
 
-          const resMonthData = await axios.get('http://localhost:3001/getmonthdata');
+          const resMonthData = await axios.get('http://localhost:3001/api/monthdata');
           setCurrentMonthData(resMonthData.data.currentMonthData);
-
-          const resAvailableTimes = await axios.get('http://localhost:3001/getavailabletimes');
-          const availableTimes = resAvailableTimes.data.AvailableTimesForMonths || [];
-          setAvailableTimesForMonth(availableTimes);
-
-          const resPrevMonthData = await axios.get('http://localhost:3001/getpreviousmonthdata');
-          setPrevMonthData(resPrevMonthData.data.previousMonthData);
-
-          const resNextMonthData = await axios.get('http://localhost:3001/getnextmonthdata');
-          setNextMonthData(resNextMonthData.data.nextMonthData);
-
-          const nextAvailable = availableTimes.find(dateData => dateData.availableTimes.length > 0);
-          if (nextAvailable) {
-            setNextAvailableDate(nextAvailable.date);
-          }
-
-          const monthDates = availableTimes.map(dateData => dateData.date);
-          setMonthDates(monthDates);
 
           setDataFetched(true);
           setServerError(false);
@@ -70,49 +52,6 @@ const Calendar = () => {
     return <div>Server Temporary Not Working</div>;
   }
 
-  const handleDateClick = (day, month, year) => {
-    const formattedMonth = String(month).padStart(2, '0');
-    const formattedDay = String(day).padStart(2, '0');
-    const selectedDate = `${year}-${formattedMonth}-${formattedDay}`;
-    setSelectedDate(selectedDate);
-    const selectedDateData = availableTimesForMonth.find(dateData => dateData.date === selectedDate);
-    if (selectedDateData) {
-      const availableTimes = selectedDateData.availableTimes;
-      setSelectedTime(''); // Reset selected time when a new date is selected
-      setBookingData({ ...bookingData, selectedDate, selectedTime: '' });
-    } else {
-      setSelectedTime('');
-      setBookingData({ ...bookingData, selectedDate, selectedTime: '' });
-    }
-  };
-
-  const handleNextMonthClick = async () => {
-    try {
-      const response = await axios.post('http://localhost:3001/nextmonth');
-      setCurrentMonthData(response.data.currentMonthData);
-      setIsNextMonthClicked(true);
-      setIsPrevMonthClicked(false);
-    } catch (error) {
-      console.error('Error switching to next month:', error);
-    }
-  };
-
-  const handlePrevMonthClick = async () => {
-    try {
-      const response = await axios.post('http://localhost:3001/prevmonth');
-      setCurrentMonthData(response.data.currentMonthData);
-      setIsPrevMonthClicked(true);
-      setIsNextMonthClicked(false);
-    } catch (error) {
-      console.error('Error switching to previous month:', error);
-    }
-  };
-
-  const handleTimeClick = (time) => {
-    setSelectedTime(time);
-    setBookingData({ ...bookingData, selectedTime: time });
-  };
-
   const handleBookAppointment = () => {
     console.log('Booking Data:', bookingData);
     // switch to service page
@@ -126,102 +65,9 @@ const Calendar = () => {
     return `${month} ${day}`;
   };
 
-  const renderTimeButtons = () => {
-    if (!selectedDate || availableTimesForMonth.length === 0) {
-      return null;
-    }
-
-    const selectedDateData = availableTimesForMonth.find(dateData => dateData.date === selectedDate);
-    if (!selectedDateData) {
-      return null;
-    }
-
-    const { availableTimes } = selectedDateData;
-
-    if (availableTimes.length === 0) {
-      let formattedNextAvailableDate = '';
-
-      try {
-        formattedNextAvailableDate = formatDate(nextAvailableDate);
-      } catch (error) {
-        console.error('Error formatting date:', error);
-      }
-
-      return (
-        <div className="text-center">
-          <p className="font-bold text-xl text-gray-300">There are no available spots for this day</p>
-          <p className="font-thin text-md text-gray-50">Next available date:</p>
-          <button
-            className="font-thin text-2xl text-white/70 underline underline-offset-8 decoration-white/50 decoration-1
-            hover:decoration-white hover:text-white"
-            onClick={() => handleDateClick(
-              parseInt(nextAvailableDate.split('-')[2], 10),
-              parseInt(nextAvailableDate.split('-')[1], 10),
-              parseInt(nextAvailableDate.split('-')[0], 10)
-            )}
-          >
-            {formattedNextAvailableDate}
-          </button>
-        </div>
-      );
-      
-    }
-
-    const morningTimes = availableTimes.filter(time => parseInt(time.split(':')[0], 10) < 12);
-    const dayTimes = availableTimes.filter(time => parseInt(time.split(':')[0], 10) >= 12);
-
-    const renderTimes = (times) => {
-      return times.map((time, index) => {
-        const isSelectedTime = selectedTime === `${time}`;
-        return (
-          <button
-            key={index}
-            className={`text-white/70 hover:text-white p-3 m-2 ${isSelectedTime ? 'rounded-full bg-gray-500' : ''}`}
-            onClick={() => handleTimeClick(time)}
-          >
-            {time}
-          </button>
-        );
-      });
-    };
-
-    return (
-      <div>
-        {morningTimes.length > 0 && (
-          <div>
-            <h2 className="font-thin text-white mb-2 text-xl">Morning</h2>
-            <div className="flex flex-wrap">
-              {renderTimes(morningTimes)}
-            </div>
-          </div>
-        )}
-        
-        {dayTimes.length > 0 && (
-          <div>
-            <h2 className="font-thin text-white mt-4 mb-2 text-xl">Day</h2>
-            <div className="flex flex-wrap">
-              {renderTimes(dayTimes)}
-            </div>
-          </div>
-        )}
-
-        {selectedTime.length > 0 && (
-        <div className="w-full flex justify-center mt-4">
-        <button
-          onClick={handleBookAppointment}
-          className="w-full text-center text-xl font-thin py-2 text-white bg-gray-700 hover:bg-gray-600 focus:bg-gray-600 focus:outline-none"
-        >
-          Book
-        </button>
-        </div>
-        )}
-    </div>
-  );
-};
-
   const renderCalendarCells = () => {
     const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const daysInMonth = currentMonthData.currentNumberOfDays;
+    const daysInMonth = currentMonthData.NumberOfDays;
     const currentMonthIndex = currentMonthData.currentMonthIndex;
 
     const firstDayOfWeek = new Date(currentMonthData.currentYear, currentMonthIndex - 1, 1).getDay();
@@ -292,30 +138,11 @@ const Calendar = () => {
       <div className="mt-2 bg-gray-800 flex flex-col justify-between h-[280px] shadow-[0_15px_10px_-10px_rgba(0,0,0,0.25)]">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-xl font-thin">{currentMonthData.currentMonthName}</h1>
-          <div className="flex space-x-3">
-            <button
-              onClick={handlePrevMonthClick}
-              className={`text-xl font-thin ${isPrevMonthClicked || !isNextMonthClicked ? 'text-white/20' : 'text-white/70 hover:text-white'}`}
-              disabled={isPrevMonthClicked}
-            >
-              Prev
-            </button>
-            <button
-              onClick={handleNextMonthClick}
-              className={`text-xl font-thin ${isNextMonthClicked ? 'text-white/20' : 'text-white/70 hover:text-white'}`}
-              disabled={isNextMonthClicked}
-            >
-              Next
-            </button>
-          </div>
         </div>
         <div className="flex-grow">
           <div className="grid grid-cols-7 gap-3 gap-x-14">
             {renderCalendarCells()}
           </div>
-        </div>
-        <div className="mt-12">
-          {renderTimeButtons()}
         </div>
       </div>
     </div>
