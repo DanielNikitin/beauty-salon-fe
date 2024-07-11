@@ -1,5 +1,3 @@
-// Services.jsx
-
 import React, { useEffect, useContext, useState } from 'react';
 import { BookingContext } from '../../components/BookingHandler';
 import { useRouter } from 'next/router';
@@ -7,8 +5,8 @@ import { useRouter } from 'next/router';
 const Services = () => {
   const router = useRouter();
   const { bookingData, setBookingData } = useContext(BookingContext);
-  const [selectedServices, setSelectedServices] = useState([]);
   const [specialist, setSpecialist] = useState(null);
+  const [selectedServices, setSelectedServices] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
@@ -35,13 +33,13 @@ const Services = () => {
   };
 
   const handleServiceCheckboxChange = (event) => {
-    const serviceId = event.target.value;
+    const service = event.target.value;
     if (event.target.checked) {
       // Add service to selectedServices if checked
-      setSelectedServices([...selectedServices, serviceId]);
+      setSelectedServices([...selectedServices, service]);
     } else {
       // Remove service from selectedServices if unchecked
-      setSelectedServices(selectedServices.filter((id) => id !== serviceId));
+      setSelectedServices(selectedServices.filter((s) => s !== service));
     }
   };
 
@@ -68,7 +66,7 @@ const Services = () => {
 
       {specialist && (
         <div className="flex flex-col items-center">
-          <h2 className="text-2xl font-bold mb-4">Services of Specialist {specialist.id}</h2>
+          <h2 className="text-2xl font-bold mb-4">List of Services for {specialist.name} // id {specialist.id}</h2>
           <ul className="list-disc text-left">
             {specialist.services.split(',').map((service, index) => {
               const serviceId = `service-${index}`;
@@ -77,7 +75,7 @@ const Services = () => {
                   <input
                     type="checkbox"
                     id={serviceId}
-                    value={serviceId}
+                    value={service.trim()}
                     onChange={handleServiceCheckboxChange}
                   />
                   <label htmlFor={serviceId} className="ml-2">

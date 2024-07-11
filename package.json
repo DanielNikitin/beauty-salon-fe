@@ -19,6 +19,7 @@
     "flowbite-datepicker": "^1.2.6",
     "framer-motion": "^10.12.16",
     "googleapis": "^137.1.0",
+    "lodash": "^4.17.21",
     "next": "13.4.3",
     "primeicons": "^7.0.0",
     "primereact": "^10.6.5",

@@ -6,7 +6,7 @@ const Specialist = () => {
   const router = useRouter();
   const { bookingData, setBookingData } = useContext(BookingContext);
   const [specialists, setSpecialists] = useState([]);
-  const [selectedSpecialist, setSelectedSpecialist] = useState(null);
+  const [selectedSpecialist, setSelectedSpecialist] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   // Функция для загрузки списка специалистов
@@ -32,6 +32,7 @@ const Specialist = () => {
   const handleSelectSpecialist = (specialist) => {
     setSelectedSpecialist(specialist);
     setBookingData({ ...bookingData, specialistId: specialist.id });
+    console.log(selectedSpecialist);
     setErrorMessage('');
   };
 
